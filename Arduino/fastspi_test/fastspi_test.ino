@@ -1,3 +1,7 @@
+#include <system_configuration.h>
+#include <unwind-cxx.h>
+#include <utility.h>
+
 #define DEBUG_SPI
 
 #include <FastSPI_LED.h>

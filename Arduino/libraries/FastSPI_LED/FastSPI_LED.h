@@ -136,5 +136,6 @@ public:
 };
 
 extern CFastSPI_LED FastSPI_LED;
+
 #endif
 
