@@ -244,19 +244,24 @@ class SinWave : public Program
 {
   private:
     CRGB m_fg, m_bg;
-    int m_drawCount;
-    int m_rate; // Number of draws to go through one period
+    int m_durationMs;
     float m_period;
     float m_amplitude;
+    unsigned long m_timeStart;
     
   public:
-  SinWave(CRGB fg, CRGB bg, int rate) : m_fg(fg), m_bg(bg), m_drawCount(0), m_rate(rate)
+  SinWave(CRGB fg, CRGB bg, int durationMs) : m_fg(fg), m_bg(bg), m_durationMs(durationMs)
   {
     m_period = 2.0 * 3.1415;
     m_amplitude = 0.8;
+    m_timeStart = millis();
   }
   void draw(Painter* painter)
   {
+    if(millis() > m_timeStart + m_durationMs) { m_timeStart += m_durationMs; }
+    float time_percent = float(millis() - m_timeStart) / m_durationMs;
+    float offset = m_period * time_percent;
+    
     // BG
     for (int i=0; i<painter->getIndexCount(); ++i)
     {
@@ -265,14 +270,10 @@ class SinWave : public Program
     // FG
     for (int x=0; x<painter->getWidth(); x++)
     {
-      float offset = m_period * m_drawCount / m_rate;
       float x_percent = 1.0 * x / painter->getWidth();
       int y = int((sin(m_period*x_percent+offset)*m_amplitude/2.0+0.5)*painter->getHeight());
       painter->setPixelColor( x, y, m_fg );
     }
-    
-    m_drawCount++;
-    m_drawCount = m_drawCount % m_rate;
   } 
 };
 
@@ -416,8 +417,8 @@ class SolidColor : public Program
 //}
 
   Program* programs[] = {
-    new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 200 ),
-    new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 100 ),
+    new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 2000 ),
+    new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 1000 ),
     new SolidColor(CRGB(255, 0, 255)), 
     new SolidColor(CRGB(0, 255, 255))
   };
@@ -456,7 +457,7 @@ void setup()
 unsigned long loopStart = 0;
 void loop()
 { 
-  if (millis() > loopStart + 5000)
+  if (millis() > loopStart + 10000)
   {
     loopStart = millis();
     pm.transitionOverTime(5000); 
