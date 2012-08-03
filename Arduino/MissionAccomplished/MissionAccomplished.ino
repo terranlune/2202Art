@@ -1,7 +1,3 @@
-#include <system_configuration.h>
-#include <unwind-cxx.h>
-#include <utility.h>
-
 #define DEBUG_SPI
 
 #include <FastSPI_LED.h>
@@ -13,7 +9,9 @@
 #define LIGHT_BOARD_HEIGHT 13
 
 // Sometimes chipsets wire in a backwards sort of way
-struct CRGB { unsigned char r; unsigned char g; unsigned char b; };
+struct CRGB { unsigned char r; unsigned char g; unsigned char b; 
+  CRGB(unsigned char r, unsigned char g, unsigned char b) : r(r), g(g), b(b) {} 
+};
 // struct CRGB { unsigned char r; unsigned char g; unsigned char b; };
 struct CRGB *leds;
 
@@ -27,8 +25,8 @@ class Painter {
       m_width = width;
       m_height = height;
     }
-    virtual void setPixelColor(int x, int y, int r, int g, int b) =0;
-    virtual void setIndexColor(int i, int r, int g, int b) =0;
+    virtual void setPixelColor(int x, int y, CRGB color) =0;
+    virtual void setIndexColor(int i, CRGB color) =0;
     void draw()
     {
       FastSPI_LED.show();
@@ -81,16 +79,16 @@ class NormalPainter : public Painter
 {
   public:
     NormalPainter(int width, int height) : Painter(width, height) {}
-    void setPixelColor(int x, int y, int r, int g, int b)
+    void setPixelColor(int x, int y, CRGB color)
     {
       int index = getIndex(x, y);
-      setIndexColor(index, r, g, b);
+      setIndexColor(index, color);
     } 
-    void setIndexColor(int i, int r, int g, int b)
+    void setIndexColor(int i, CRGB color)
     {
-      leds[i].r = r;
-      leds[i].g = g;
-      leds[i].b = b;
+      leds[i].r = color.r;
+      leds[i].g = color.g;
+      leds[i].b = color.b;
     }
 };
 
@@ -120,28 +118,25 @@ class WipeTransition : public Transition
     {
       m_mode = mode;
     }
-    void setPixelColor(int x, int y, int r, int g, int b)
+    void setPixelColor(int x, int y, CRGB color)
     {
       switch(m_mode)
       {
         case 0:
         default:
           int threshold = ceil(m_percentComplete * m_width);
-          
-          Serial.print("Threshold:");
-          Serial.println(threshold);
           if(x < threshold)
           {
             int i = getIndex(x,y);
-            leds[i].r = r;
-            leds[i].g = g;
-            leds[i].b = b;
+            leds[i].r = color.r;
+            leds[i].g = color.g;
+            leds[i].b = color.b;
           }
       }
     }
-    void setIndexColor(int i, int r, int g, int b)
+    void setIndexColor(int i, CRGB color)
     {
-      setPixelColor(getX(i), getY(i), r, g,  b);
+      setPixelColor(getX(i), getY(i), color);
     }
 };
 
@@ -162,7 +157,7 @@ class ProgramManager
     Transition** m_transitions;
     NormalPainter m_normalPainter;
     bool m_transitioning;
-    int m_transitionStart;
+    unsigned long m_transitionStart;
     int m_transitionDuration;
     int m_currentTransitionIndex;
   public:
@@ -189,11 +184,17 @@ class ProgramManager
     
     void transitionOverTime(int transitionDuration)
     {
-      
-      Serial.println("Begin Transition");
-      m_transitioning = true;
-      m_transitionStart = millis();
-      m_transitionDuration = transitionDuration;
+      if (m_transitioning)
+      {
+        Serial.println("Ignoring begin transition");
+      }
+      else
+      {
+        Serial.println("Begin Transition");
+        m_transitioning = true;
+        m_transitionStart = millis();
+        m_transitionDuration = transitionDuration;
+      }
     }
       
     void draw(void)
@@ -239,38 +240,55 @@ class ProgramManager
     }
 };
 
-//class SinWave : public Program
-//{
-//  public:
-//  void draw()
-//  {
-//    for (float t=0;t<12.0*3.1415;t=t+.04) {
-//      setColor( 8, 32, 32 );
-//      for (int x=0; x<LIGHT_BOARD_WIDTH; x++) {
-//        int y = int((sin(2.0*3.1415*x/LIGHT_BOARD_WIDTH+t)*0.8/2.0+0.5)*LIGHT_BOARD_HEIGHT);
-//        setLightBoardPixelColor( x, y, 255, 64, 0 );
-//      }
-//      FastSPI_LED.show();
-//    }
-//  } 
-//};
+class SinWave : public Program
+{
+  private:
+    CRGB m_fg, m_bg;
+    int m_drawCount;
+    int m_rate; // Number of draws to go through one period
+    float m_period;
+    float m_amplitude;
+    
+  public:
+  SinWave(CRGB fg, CRGB bg, int rate) : m_fg(fg), m_bg(bg), m_drawCount(0), m_rate(rate)
+  {
+    m_period = 2.0 * 3.1415;
+    m_amplitude = 0.8;
+  }
+  void draw(Painter* painter)
+  {
+    // BG
+    for (int i=0; i<painter->getIndexCount(); ++i)
+    {
+       painter->setIndexColor(i, m_bg); 
+    }
+    // FG
+    for (int x=0; x<painter->getWidth(); x++)
+    {
+      float offset = m_period * m_drawCount / m_rate;
+      float x_percent = 1.0 * x / painter->getWidth();
+      int y = int((sin(m_period*x_percent+offset)*m_amplitude/2.0+0.5)*painter->getHeight());
+      painter->setPixelColor( x, y, m_fg );
+    }
+    
+    m_drawCount++;
+    m_drawCount = m_drawCount % m_rate;
+  } 
+};
 
 class SolidColor : public Program
 {
   private:
-    int m_r, m_g, m_b;
+    CRGB m_color;
   public:
-    SolidColor(int r, int g, int b)
+    SolidColor(CRGB color) : m_color(color)
     {
-      m_r = r;
-      m_g = g;
-      m_b = b;
     }
     void draw(Painter* painter)
     {
       for (int i=0; i<painter->getIndexCount(); ++i)
       {
-         painter->setIndexColor(i, m_r, m_g, m_b); 
+         painter->setIndexColor(i, m_color); 
       }
     }
 };
@@ -398,15 +416,17 @@ class SolidColor : public Program
 //}
 
   Program* programs[] = {
-    new SolidColor(255, 0, 255), 
-    new SolidColor(0, 255, 255)
+    new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 200 ),
+    new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 100 ),
+    new SolidColor(CRGB(255, 0, 255)), 
+    new SolidColor(CRGB(0, 255, 255))
   };
   
   Transition* transitions[] = {
     new WipeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, 0)
   };
   
-  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 2, transitions, 1);
+  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 4, transitions, 1);
 
 void setup()
 {
@@ -433,13 +453,13 @@ void setup()
 }
 
 
-int loopStart = -1;
+unsigned long loopStart = 0;
 void loop()
 { 
   if (millis() > loopStart + 5000)
   {
     loopStart = millis();
-    pm.transitionOverTime(1000); 
+    pm.transitionOverTime(5000); 
   }
   
   pm.draw();
