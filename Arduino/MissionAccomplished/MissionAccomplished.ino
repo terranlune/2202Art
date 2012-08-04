@@ -70,7 +70,7 @@ class Painter {
       }
       else
       {
-        return m_width - (index % m_width);
+        return m_width - (index % m_width) - 1;
       }
     }
 };
