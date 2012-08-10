@@ -8,12 +8,85 @@
 #define LIGHT_BOARD_WIDTH 19
 #define LIGHT_BOARD_HEIGHT 13
 
+
+float f, p, q, t, vs, vsf, hsv_i;
+void HSVtoRGB( float *r, float *g, float *b, float h, float s, float v )
+{
+  int hsv_i;
+
+  if( s == 0 ) {
+    // achromatic (grey)
+    *r = *g = *b = v;
+    return;
+  }
+
+  h /= 60;			// sector 0 to 5
+  hsv_i = floor( h );
+  f = h - hsv_i;			// factorial part of h
+  //p = v * ( 1 - s );
+  //q = v * ( 1 - s * f );
+  //t = v * ( 1 - s * ( 1 - f ) );
+
+  vs = v * s;
+  vsf = vs * f;
+
+  p = v - vs;
+  q = v - vsf;
+  t = v - vs + vsf;
+
+  switch( hsv_i ) {
+  case 0:
+    *r = v;
+    *g = t;
+    *b = p;
+    break;
+  case 1:
+    *r = q;
+    *g = v;
+    *b = p;
+    break;
+  case 2:
+    *r = p;
+    *g = v;
+    *b = t;
+    break;
+  case 3:
+    *r = p;
+    *g = q;
+    *b = v;
+    break;
+  case 4:
+    *r = t;
+    *g = p;
+    *b = v;
+    break;
+  default:		// case 5:
+    *r = v;
+    *g = p;
+    *b = q;
+    break;
+  }
+
+}
+struct CHSV { float h; float s; float v; 
+  CHSV(float h, float s, float v) : h(h), s(s), v(v) {}
+};
+
 // Sometimes chipsets wire in a backwards sort of way
 struct CRGB { unsigned char r; unsigned char g; unsigned char b; 
-  CRGB(unsigned char r, unsigned char g, unsigned char b) : r(r), g(g), b(b) {} 
+  CRGB(unsigned char r, unsigned char g, unsigned char b) : r(r), g(g), b(b) {}
+  CRGB(CHSV hsv) : r(0), g(0), b(0)
+  {
+    float rf, gf, bf;
+    HSVtoRGB(&rf, &gf, &bf, hsv.h, hsv.s, hsv.v);
+    r = round(rf * 255);
+    g = round(gf * 255);
+    b = round(bf * 255);
+  }
 };
 // struct CRGB { unsigned char r; unsigned char g; unsigned char b; };
 struct CRGB *leds;
+
 
 //#define PIN 4
 
@@ -312,6 +385,38 @@ class SolidColor : public Program
     }
 };
 
+class HSVTest : public Program
+{
+  private:
+    int m_durationMs;
+    unsigned long m_timeStart;
+  
+  public:
+  HSVTest(int durationMs) : m_durationMs(durationMs)
+  {
+    m_timeStart = millis();
+  }
+  
+  
+  void draw(Painter* painter)
+  {
+    if(millis() > m_timeStart + m_durationMs) { m_timeStart += m_durationMs; }
+    float time_percent = float(millis() - m_timeStart) / m_durationMs;
+    
+    
+    for (int i=0; i<painter->getIndexCount(); ++i)
+    {
+       float indexPercent = 1.0 * i / painter->getIndexCount();
+       float h = ((indexPercent + time_percent) * 360.0);
+       if(h > 360) { h-= 360; }
+       CRGB color = CRGB(CHSV(h, 1.0, 1.0));
+       painter->setIndexColor(i, color); 
+    }
+    
+    
+  }
+};
+
 //int getIndex(int x, int y)
 //{
 //  // The strand starts at the bottom right and snakes up and to the 
@@ -435,9 +540,10 @@ class SolidColor : public Program
 //}
 
   Program* programs[] = {
+    new HSVTest(10000), 
     new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 2000 ),
     new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 1000 ),
-    new SolidColor(CRGB(255, 0, 255)), 
+    new SolidColor(CRGB(255, 0, 255)),
     new SolidColor(CRGB(0, 255, 255))
   };
   
@@ -446,7 +552,7 @@ class SolidColor : public Program
 //    new WipeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, 0)
   };
   
-  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 4, transitions, 1);
+  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 5, transitions, 1);
 
 void setup()
 {
