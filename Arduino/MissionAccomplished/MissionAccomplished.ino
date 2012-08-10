@@ -417,55 +417,6 @@ class HSVTest : public Program
   }
 };
 
-//int getIndex(int x, int y)
-//{
-//  // The strand starts at the bottom right and snakes up and to the 
-//  // left, like so (assuming width of 4):
-//  //
-//  //  ^  11---10---09---08
-//  //  |  04---05---06---07
-//  //  y  03---02---01---00
-//  //   x --->
-//  // 
-//  // So, y*width will tell us the minimum index it could be.  Since
-//  // the rows alternate ordering, if the row is even, the additional
-//  // offset is width-x-1.
-//  int index = y * LIGHT_BOARD_WIDTH;
-//  if (y%2==1) {
-//      index += x;
-//  }else{
-//      index += (LIGHT_BOARD_WIDTH-x-1);
-//  }
-//  return index;
-//}
-
-//void setLightBoardPixelColor(int x, int y, int r, int g, int b) {
-//  int index = getIndex(x, y);
-//  leds[index].r = r;
-//  leds[index].g = g;
-//  leds[index].b = b;
-//}
-
-//void setColor(int r, int g, int b) {
-//  memset(leds, 0, NUM_LEDS * 3);
-//  for (int i=0; i < NUM_LEDS; i++) {
-//    leds[i].r = r;
-//    leds[i].g = g;
-//    leds[i].b = b;
-//  }  
-//}
-
-//void showSinWave() {
-//  for (float t=0;t<12.0*3.1415;t=t+.04) {
-//    setColor( 8, 32, 16 );
-//    for (int x=0; x<LIGHT_BOARD_WIDTH; x++) {
-//      int y = int((sin(2.0*3.1415*x/LIGHT_BOARD_WIDTH+t)*0.8/2.0+0.5)*LIGHT_BOARD_HEIGHT);
-//      setLightBoardPixelColor( x, y, 255, 64, 255 );
-//    }
-//    FastSPI_LED.show();
-//  }
-//}
-
 //void showOneAtATime()
 //{
 //  // one at a time
