@@ -140,6 +140,24 @@ class WipeTransition : public Transition
     }
 };
 
+class FadeTransition : public Transition
+{
+  public:
+    FadeTransition(int width, int height) : Transition(width, height) {};
+    
+    void setPixelColor(int x, int y, CRGB color)
+    {
+      int i = getIndex(x, y);
+      setIndexColor(i, color);
+    }
+    void setIndexColor(int i, CRGB color)
+    {
+      leds[i].r = m_percentComplete * color.r + (1.0 - m_percentComplete) * leds[i].r;
+      leds[i].g = m_percentComplete * color.g + (1.0 - m_percentComplete) * leds[i].g;
+      leds[i].b = m_percentComplete * color.b + (1.0 - m_percentComplete) * leds[i].b;
+    }
+};
+
 class Program {
   public:
     virtual void draw(Painter*) =0;
@@ -424,7 +442,8 @@ class SolidColor : public Program
   };
   
   Transition* transitions[] = {
-    new WipeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, 0)
+    new FadeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT)
+//    new WipeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, 0)
   };
   
   ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 4, transitions, 1);
