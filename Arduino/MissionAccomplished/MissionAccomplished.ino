@@ -296,22 +296,24 @@ class ProgramManager
         
         if(m_transitioning && m_transitionCount > 0)
         {          
-          Transition* currentTransition = m_transitions[m_currentTransitionIndex];
-          
           float percentComplete = float(millis() - m_transitionStart) / m_transitionDuration;
-          currentTransition->setPercentComplete(percentComplete);
-          
-          int nextProgramIndex = getNextProgramIndex();
-          m_programs[nextProgramIndex]->draw(currentTransition);
-          
-          currentTransition->draw();
-          
+
           // Move on to the next program after the transition 
           if (percentComplete >= 1.0)
           {
             m_currentProgramIndex = getNextProgramIndex();
             m_transitioning = false;
             Serial.println("End Transition");
+          }
+          else
+          {          
+            Transition* currentTransition = m_transitions[m_currentTransitionIndex];
+            currentTransition->setPercentComplete(percentComplete);
+            
+            int nextProgramIndex = getNextProgramIndex();
+            m_programs[nextProgramIndex]->draw(currentTransition);
+            
+            currentTransition->draw();
           }
         }
         else
