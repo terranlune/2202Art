@@ -419,6 +419,95 @@ class HSVTest : public Program
   }
 };
 
+class Elena : public Program
+{
+  private:
+    int m_pixelCount;
+    uint8_t m_pixelUpdateOrder[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+    uint8_t m_pixelUpdateOrderIndex;
+    
+    int m_updateIntervalMs;
+    unsigned long m_timeStart;
+    
+    CHSV m_baseColor;
+    float m_baseHAdjustment, m_baseSAdjustment;
+
+  public:
+    Elena(int pixelCount, int updateIntervalMs) : 
+      m_pixelCount(pixelCount),
+      m_updateIntervalMs(updateIntervalMs),
+      m_pixelUpdateOrderIndex(0),
+      m_baseHAdjustment(0.05),
+      m_baseSAdjustment(0.01),
+      m_baseColor( random(360.0), 0.8, 0.6)
+    {
+      m_timeStart = millis();
+      
+      // Shuffle pixel orders using Knuth shuffle
+      for(int i=0; i<m_pixelCount; ++i)
+      {
+        m_pixelUpdateOrder[i] = i; 
+      }
+      // i is the number of items remaining to be shuffled.
+      for (int i = m_pixelCount; i > 1; --i) {
+        // Pick a random element to swap with the i-th element.
+        int j = random(m_pixelCount);
+        // Swap array elements.
+        uint8_t tmp = m_pixelUpdateOrder[j];
+        m_pixelUpdateOrder[j] = m_pixelUpdateOrder[i-1];
+        m_pixelUpdateOrder[i-1] = tmp;
+      }
+    }
+
+    void incrementBaseColor()
+    {
+      // Rotate the hue
+      m_baseColor.h += m_baseHAdjustment;
+      if (m_baseColor.h > 360.0) 
+      {
+        m_baseColor.h -= 360.0;
+      }
+    
+      // Randomly move saturation, but not as big as the pixel max
+      m_baseColor.s += 0.0001 * random(-10000, 10000) * m_baseHAdjustment;
+      m_baseColor.s = constrain(m_baseColor.s, 0.0, 1.0);
+    
+      // The base value doesn't change
+    }
+  
+    void draw(Painter* painter)
+    {
+      
+      if(millis() > m_timeStart + m_updateIntervalMs)
+      {
+        m_timeStart += m_updateIntervalMs;
+        
+        incrementBaseColor();
+        
+        
+        int currentPixelIndex = m_pixelUpdateOrder[m_pixelUpdateOrderIndex];
+        CRGB color = CRGB(m_baseColor);
+        painter->setIndexColor(currentPixelIndex, color); 
+        
+        // Increment to the next pixel
+        m_pixelUpdateOrderIndex = (m_pixelUpdateOrderIndex + 1) % m_pixelCount;
+        
+        Serial.print(m_pixelUpdateOrderIndex);
+        Serial.print(" to ");
+        Serial.print(currentPixelIndex);
+        Serial.print(" with hsv color ");
+        Serial.print(m_baseColor.h);
+        Serial.print(",");
+        Serial.print(m_baseColor.s);
+        Serial.print(",");
+        Serial.print(m_baseColor.v);
+        Serial.println();
+        
+      }
+            
+    }
+};
+
 //void showOneAtATime()
 //{
 //  // one at a time
@@ -493,6 +582,7 @@ class HSVTest : public Program
 //}
 
   Program* programs[] = {
+    new Elena(LIGHT_BOARD_HEIGHT*LIGHT_BOARD_WIDTH, 1),
     new HSVTest(10000), 
     new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 2000 ),
     new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 1000 ),
@@ -505,7 +595,7 @@ class HSVTest : public Program
 //    new WipeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, 0)
   };
   
-  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 5, transitions, 1);
+  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 6, transitions, 1);
 
 void setup()
 {
