@@ -419,6 +419,7 @@ class HSVTest : public Program
   }
 };
 
+
 class Elena : public Program
 {
   private:
@@ -428,18 +429,42 @@ class Elena : public Program
     
     int m_updateIntervalMs;
     unsigned long m_timeStart;
+    unsigned long m_fullRefreshCount;
     
     CHSV m_baseColor;
-    float m_baseHAdjustment, m_baseSAdjustment;
+    float m_baseAdjustmentH;
+    float m_baseAdjustmentS;
+
+    // These are 0-1, but represented as an integer out of 65535
+//    uint8_t m_pixelAmplitudeH[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+//    uint8_t m_pixelAmplitudeS[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+//    uint8_t m_pixelAmplitudeV[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+//    uint8_t m_pixelPeriodH[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+//    uint8_t m_pixelPeriodS[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+//    uint8_t m_pixelPeriodV[LIGHT_BOARD_WIDTH*LIGHT_BOARD_HEIGHT];
+
+    float m_maxPixelAmplitudeH;
+    float m_maxPixelAmplitudeS;
+    float m_maxPixelAmplitudeV;
+    uint8_t m_maxPixelPeriodH;
+    uint8_t m_maxPixelPeriodS;
+    uint8_t m_maxPixelPeriodV;
 
   public:
     Elena(int pixelCount, int updateIntervalMs) : 
       m_pixelCount(pixelCount),
-      m_updateIntervalMs(updateIntervalMs),
       m_pixelUpdateOrderIndex(0),
-      m_baseHAdjustment(0.05),
-      m_baseSAdjustment(0.01),
-      m_baseColor( random(360.0), 0.8, 0.6)
+      m_updateIntervalMs(updateIntervalMs),
+      m_fullRefreshCount(0),
+      m_baseColor(random(360.0), 0.8, 0.6),
+      m_baseAdjustmentH(0.05),
+      m_baseAdjustmentS(0.01),
+      m_maxPixelAmplitudeH(10.0),
+      m_maxPixelAmplitudeS(0.2),
+      m_maxPixelAmplitudeV(0.4),
+      m_maxPixelPeriodH(50),
+      m_maxPixelPeriodS(100),
+      m_maxPixelPeriodV(100)
     {
       m_timeStart = millis();
       
@@ -457,19 +482,34 @@ class Elena : public Program
         m_pixelUpdateOrder[j] = m_pixelUpdateOrder[i-1];
         m_pixelUpdateOrder[i-1] = tmp;
       }
+      
+      // Assign random amplitudes and periods for each pixel
+      for(int i=0; i<m_pixelCount; ++i)
+      {
+//        // These are 0-1, but represented as an integer out of 65535
+//        m_pixelAmplitudeH[i] = random(65535);
+//        m_pixelAmplitudeS[i] = random(65535);
+//        m_pixelAmplitudeV[i] = random(65535);
+//        m_pixelPeriodH[i] = random(65535);
+//        m_pixelPeriodS[i] = random(65535);
+//        m_pixelPeriodV[i] = random(65535);
+        
+      }
     }
 
     void incrementBaseColor()
     {
       // Rotate the hue
-      m_baseColor.h += m_baseHAdjustment;
+      m_baseColor.h += m_baseAdjustmentH;
+      
+      // Randomly move saturation, but not as big as the pixel max
+      m_baseColor.s += 0.0001 * random(-10000, 10000) * m_baseAdjustmentH;
+      
+      // Correct for out of range
       if (m_baseColor.h > 360.0) 
       {
         m_baseColor.h -= 360.0;
       }
-    
-      // Randomly move saturation, but not as big as the pixel max
-      m_baseColor.s += 0.0001 * random(-10000, 10000) * m_baseHAdjustment;
       m_baseColor.s = constrain(m_baseColor.s, 0.0, 1.0);
     
       // The base value doesn't change
@@ -480,27 +520,61 @@ class Elena : public Program
       
       if(millis() > m_timeStart + m_updateIntervalMs)
       {
+        // We've crossed the threshold, so move the last bar forward
         m_timeStart += m_updateIntervalMs;
         
-        incrementBaseColor();
-        
-        
+        // Get the current pixel index
         int currentPixelIndex = m_pixelUpdateOrder[m_pixelUpdateOrderIndex];
-        CRGB color = CRGB(m_baseColor);
+        
+        // Start by updating the base color
+        incrementBaseColor();
+        CHSV color = CHSV(m_baseColor);
+        
+//        // Lookup the pixel's personality, and convert to -1.0 - 1.0
+//        float h_amp_f = 1.0 - 2.0 * m_pixelAmplitudeH[currentPixelIndex] / 65535.0;
+//        float s_amp_f = 1.0 - 2.0 * m_pixelAmplitudeS[currentPixelIndex] / 65535.0;
+//        float v_amp_f = 1.0 - 2.0 * m_pixelAmplitudeV[currentPixelIndex] / 65535.0;
+//        float h_per_f = 1.0 - 2.0 * m_pixelPeriodH[currentPixelIndex] / 65535.0;
+//        float s_per_f = 1.0 - 2.0 * m_pixelPeriodS[currentPixelIndex] / 65535.0;
+//        float v_per_f = 1.0 - 2.0 * m_pixelPeriodV[currentPixelIndex] / 65535.0;
+//        
+//        // Calculate the offset from the base color
+//        color.h += m_maxPixelAmplitudeH * sin(2.0 * PI * m_fullRefreshCount / m_maxPixelPeriodH * h_per_f );
+//        color.s += m_baseColor.s + m_maxPixelAmplitudeS * sin(2.0 * PI * m_fullRefreshCount / m_maxPixelPeriodS * s_per_f );
+//        color.v += m_baseColor.v + m_maxPixelAmplitudeV * sin(2.0 * PI * m_fullRefreshCount / m_maxPixelPeriodV * v_per_f );
+        
+        // Correct for out of range
+        if (color.h > 360.0) { 
+          color.h -= 360.0; 
+        }
+        if (color.h < 0.0) { 
+          color.h += 360.0; 
+        }
+        color.s = constrain(color.s, 0.0, 0.5);
+        color.v = constrain(color.v, 0.0, 1.0);
+        
+        // Set the pixel color
         painter->setIndexColor(currentPixelIndex, color); 
         
         // Increment to the next pixel
-        m_pixelUpdateOrderIndex = (m_pixelUpdateOrderIndex + 1) % m_pixelCount;
+        m_pixelUpdateOrderIndex++;
+       
+        // Increment to the next full refresh
+        if (m_pixelUpdateOrderIndex > m_pixelCount)
+        {
+          m_pixelUpdateOrderIndex = 0;
+          m_fullRefreshCount++;
+        }
         
         Serial.print(m_pixelUpdateOrderIndex);
         Serial.print(" to ");
         Serial.print(currentPixelIndex);
         Serial.print(" with hsv color ");
-        Serial.print(m_baseColor.h);
+        Serial.print(color.h);
         Serial.print(",");
-        Serial.print(m_baseColor.s);
+        Serial.print(color.s);
         Serial.print(",");
-        Serial.print(m_baseColor.v);
+        Serial.print(color.v);
         Serial.println();
         
       }
