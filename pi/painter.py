@@ -12,9 +12,9 @@ class PixelBuffer(object):
         
     def setPixel(self, x, y, r, g, b):
         i = x + y*self.width
-        self.data[i*3 + 0] = r
-        self.data[i*3 + 1] = g
-        self.data[i*3 + 2] = b
+        self.data[i*3 + 0] = min(255, max(0, int(r)))
+        self.data[i*3 + 1] = min(255, max(0, int(g)))
+        self.data[i*3 + 2] = min(255, max(0, int(b)))
         
     def getPixel(self, x, y):
         # returns tuple (r,g,b)
@@ -25,9 +25,9 @@ class PixelBuffer(object):
     def clear(self, r, g, b, opacity=1):
         mul = 1 - opacity
         for p in range(self.width * self.height):
-            self.data[p * 3 + 0] = self.data[p * 3 + 0] * mul + r * opacity
-            self.data[p * 3 + 1] = self.data[p * 3 + 1] * mul + g * opacity
-            self.data[p * 3 + 2] = self.data[p * 3 + 2] * mul + b * opacity
+            self.data[p * 3 + 0] = min(255, max(0, int(self.data[p * 3 + 0] * mul + r * opacity)))
+            self.data[p * 3 + 1] = min(255, max(0, int(self.data[p * 3 + 1] * mul + g * opacity)))
+            self.data[p * 3 + 2] = min(255, max(0, int(self.data[p * 3 + 2] * mul + b * opacity)))
 
 
 class Painter(object):
