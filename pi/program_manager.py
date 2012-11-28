@@ -77,11 +77,11 @@ def main():
                     setPixelColor(x, y, 0, 0, 0)
 
         # Display the pixels
-        spiBytes[numPixels] = 0 # Make sure latch is set
+        #spiBytes[numPixels] = 0 # Make sure latch is set
         spidev.write(spiBytes)
         spidev.flush()
         tick += 1
-        if tick > 10000:
+        if tick > 500:
             tick = 0
             pIndex = (pIndex + 1) % len(painters)
 
