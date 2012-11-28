@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
-import RPi.GPIO as GPIO, sys
+import RPi.GPIO as GPIO, sys, time
 
 # Configurable values
 dev       = "/dev/spidev0.0"
 boardWidth=19
 boardHeight=13
 numPixels = 248
+MAX_TIME = 30
 
 # Open SPI device, load image in RGB format and get dimensions:
 spidev    = file(dev, "wb")
@@ -65,7 +66,7 @@ def main():
     for painter in painters:
         painter.setup()
 
-    tick = 0
+    start = time.time()
     while(1):
         painters[pIndex].draw()
         for x in range(boardWidth-1,-1,-1):
@@ -80,9 +81,8 @@ def main():
         #spiBytes[numPixels] = 0 # Make sure latch is set
         spidev.write(spiBytes)
         spidev.flush()
-        tick += 1
-        if tick > 500:
-            tick = 0
+        if time.time() > start + MAX_TIME:
+            start = time.time()
             pIndex = (pIndex + 1) % len(painters)
 
 
