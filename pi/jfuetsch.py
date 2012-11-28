@@ -1,5 +1,4 @@
 from painter import Painter
-import time
 from noise import perlin
 
 class UserPainter(Painter):
@@ -26,8 +25,5 @@ class UserPainter(Painter):
 
                 self.setPixel(x, y, r, g, b)
                 
-            
-        time.sleep(.1)
         self.z += .01
-        
-    
+
