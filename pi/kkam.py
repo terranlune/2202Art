@@ -14,7 +14,7 @@ class Line(object):
         r = b = 0
         g = 200+rand*50
         if rand > .9:
-            r = b = 200
+            r = b = 100
             g = 255
         return (r, g, b)
     
@@ -61,7 +61,7 @@ class UserPainter(Painter):
         dt = now - self.lastFrame
         self.lastFrame = now 
         
-        self.clear(0, 0, 0, opacity=2*dt)
+        self.clear(0, 0, 0, opacity=4*dt)
 
         for p in self.lines:
             x, y = p.getPos()
