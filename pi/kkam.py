@@ -12,7 +12,7 @@ class Line(object):
         R = random
         rand = R()
         r = b = 35
-        g = 200+rand*50
+        g = 170+rand*85
         if rand > .9:
             r = b = 75
             g = 255
