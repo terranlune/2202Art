@@ -25,5 +25,5 @@ class UserPainter(Painter):
 
                 self.setPixel(x, y, r, g, b)
                 
-        self.z += .01
+        self.z += .10
 

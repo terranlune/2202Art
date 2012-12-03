@@ -21,7 +21,7 @@ class UserPainter(Painter):
             return
         self.lastTime = now
 
-        for x in range(self.width-1):
+        for x in range(self.width):
             for y in range(self.height):
                 ym = (y + self.frame*self.height) % self.img_height
                 self.setPixel(x, y,

@@ -1,37 +1,21 @@
 #!/usr/bin/python
 
-import RPi.GPIO as GPIO, Image, time
+import RPi.GPIO as GPIO, Image, time, sys
 
 # Configurable values
-filename  = "small_raspi.png"
-dev       = "/dev/spidev0.0"
+files = []
+if len(sys.argv) < 2: 
+	files = ["small_raspi.png"]
+else:
+	files = sys.argv[1:]
+
+dev      = "/dev/spidev0.0"
 boardWidth=19
 boardHeight=13
 numPixels = 248
 
 # Open SPI device, load image in RGB format and get dimensions:
 spidev    = file(dev, "wb")
-print "Loading..."
-img       = Image.open(filename).convert("RGB")
-width     = img.size[0]
-height    = img.size[1]
-print "%dx%d pixels" % img.size
-
-print "Resizing to %dx%d pixels" % (boardWidth, boardHeight)
-img = img.resize((boardWidth, boardHeight))
-
-pixels    = img.load()
-
-
-
-# R, G, B byte per pixel, plus extra '0' byte at end for latch.
-spiBytes = bytearray(numPixels * 3 + 1)
-
-# For testing, solid red
-#for pixel in range(numPixels):
-#	spiBytes[pixel*3 + 0] = 0
-#	spiBytes[pixel*3 + 1] = 255
-#	spiBytes[pixel*3 + 2] = 0
 
 
 def getIndex(x, y):
@@ -65,15 +49,42 @@ def setPixelColor(x, y, r, g, b):
 	i = getIndex(x, y)
 	setIndexColor(i, r, g, b)
 
-for x in range(boardWidth):
-	for y in range(boardHeight):
-		try:
-			setPixelColor(x, y, pixels[x, y][0], pixels[x, y][1], pixels[x, y][2] )
-		except IndexError:
-			setPixelColor(x, y, 0, 0, 0)
+i = 0
+while(1):	
+	filename = files[i%len(files)]
+	i += 1		
+	print "Loading... %s" % filename
+	img       = Image.open(filename).convert("RGB")
+	width     = img.size[0]
+	height    = img.size[1]
+	print "%dx%d pixels" % img.size
 
-# Display the pixels
-spiBytes[numPixels] = 0 # Make sure latch is set
-spidev.write(spiBytes)
-spidev.flush()
+	print "Resizing to %dx%d pixels" % (boardWidth, boardHeight)
+	img = img.resize((boardWidth, boardHeight))
+
+	pixels    = img.load()
+
+	# R, G, B byte per pixel, plus extra '0' byte at end for latch.
+	spiBytes = bytearray(numPixels * 3 + 1)
+
+
+	for x in range(boardWidth):
+		for y in range(boardHeight):
+			try:
+				setPixelColor(x, y, pixels[x, y][0], pixels[x, y][1], pixels[x, y][2] )
+			except IndexError:
+				setPixelColor(x, y, 0, 0, 0)
+
+	# Display the pixels
+	spiBytes[numPixels] = 0 # Make sure latch is set
+	spidev.write(spiBytes)
+	spidev.flush()
+	time.sleep(30)
+
+
+# For testing, solid red
+#for pixel in range(numPixels):
+#	spiBytes[pixel*3 + 0] = 0
+#	spiBytes[pixel*3 + 1] = 255
+#	spiBytes[pixel*3 + 2] = 0
 

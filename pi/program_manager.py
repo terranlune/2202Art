@@ -69,9 +69,9 @@ def main():
     start = time.time()
     while(1):
         painters[pIndex].draw()
-        for x in range(boardWidth-1,-1,-1):
+        for x in range(boardWidth):
             for y in range(boardHeight):
-                color = painters[pIndex].pixelBuffer.getPixel(x,y)
+                color = painters[pIndex].pixelBuffer.getPixel(boardWidth - x-1,y)
                 try:
                     setPixelColor(x, y, color[0], color[1], color[2] )
                 except IndexError:

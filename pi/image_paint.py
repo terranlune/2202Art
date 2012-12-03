@@ -15,7 +15,7 @@ spidev    = file(dev, "wb")
 print "Loading..."
 img       = Image.open(filename).convert("RGB")
 pixels    = img.load()
-width     = 11 #£img.size[0]
+width     = 11 #img.size[0]
 height    = 13 #img.size[1]
 print "%dx%d pixels" % img.size
 # To do: add resize here if image is not desired height
@@ -48,8 +48,8 @@ for x in range(width):
 print "Displaying..."
 while True:
 	for x in range(width):
-                spidev.write(column[x])
-                spidev.flush()
+		spidev.write(column[x])
+		spidev.flush()
 		time.sleep(0.001)
 	time.sleep(0.5)
 

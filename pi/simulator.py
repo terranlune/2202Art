@@ -25,14 +25,14 @@ class Example(QtGui.QWidget):
     def initUI(self):
         self.setGeometry(300, 300, 19*SIZE, 13*SIZE)
         self.setWindowTitle('MA Sim')
-        self.timer.start(10)
+        self.timer.start(50)
         self.painters[self.painterIndex].draw()
         self.show()
 
     def timerUpdate(self):
         self.repaint()
         self.painters[self.painterIndex].draw()
-        self.timer.start(10)
+        self.timer.start(50)
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
