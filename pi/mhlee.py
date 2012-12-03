@@ -13,19 +13,26 @@ class UserPainter(Painter):
         self.img_offset = 0
         self.pixels = self.img.load()
         self.timer = 0
+	self.clear(0,0,0)
 
     def draw(self):
-        for x in range(self.width):
-            for y in range(self.height):
-                ym = (y + self.img_offset) % self.img_height
-                self.setPixel(x, y,
-                              self.pixels[x, ym][0],
-                              self.pixels[x, ym][1],
-                              self.pixels[x, ym][2])
 
         self.timer += 1
-        if (self.timer % 10) != 0:
+        if (self.timer % 10) != 1:
             return
+
+# 	self.clear(0,0,0,opacity=.75)
+#	self.clear(0,0,0)
+
+	for x in range(self.width):
+            for y in range(self.height):
+                ym = (y + self.img_offset) % self.img_height
+                color = self.pixels[x,ym]
+		self.setPixel(x, y,
+                              color[0],
+                              color[1],
+                              color[2])
+
 
         self.img_offset += 1
 
