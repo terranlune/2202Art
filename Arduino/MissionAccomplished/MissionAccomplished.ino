@@ -4,9 +4,13 @@
 
 
 
-#define NUM_LEDS 250
+#define NUM_LEDS 249
 #define LIGHT_BOARD_WIDTH 19
 #define LIGHT_BOARD_HEIGHT 13
+
+//#define NUM_LEDS 9
+//#define LIGHT_BOARD_WIDTH 3
+//#define LIGHT_BOARD_HEIGHT 3
 
 
 float f, p, q, t, vs, vsf, hsv_i;
@@ -106,7 +110,7 @@ class Painter {
     }
     int getWidth() { return m_width; }
     int getHeight() { return m_height; }
-    int getIndexCount() { return m_width * m_height; }
+    int getIndexCount() { return m_width * m_height +2; }
   protected:
     int m_width;
     int m_height;
@@ -123,7 +127,7 @@ class Painter {
       // So, y*width will tell us the minimum index it could be.  Since
       // the rows alternate ordering, if the row is even, the additional
       // offset is width-x-1.
-      int index = y * m_width;
+      int index = y * m_width + 1;
       if (y%2==1) {
           index += x;
       }else{
@@ -133,10 +137,12 @@ class Painter {
     }
     int getY(int index)
     {
-      return floor(index / m_width);
+      index++;
+      return floor((index)/ m_width);
     }
     int getX(int index)
     {
+      index++;
       if (getY(index) % 2 == 0)
       {
         return index % m_width;
@@ -419,6 +425,91 @@ class HSVTest : public Program
   }
 };
 
+class RainbowSpiral : public Program
+{
+  private:
+    int m_durationMs;
+    unsigned long m_timeStart;
+  
+  public:
+  RainbowSpiral(int durationMs) : m_durationMs(durationMs)
+  {
+    m_timeStart = millis();
+  }
+  
+  
+  void draw(Painter* painter)
+  {
+    if(millis() > m_timeStart + m_durationMs) { m_timeStart += m_durationMs; }
+    float time_percent = float(millis() - m_timeStart) / m_durationMs;
+    
+    int x, y, x_max_index, y_max_index, x_min_index, y_min_index, x_dir, y_dir;
+    
+    //index 0 is x, index 1 is y
+    int axis_dir[2] = {1, 0};
+    int min_index[2] = {0, 1};
+    int max_index[2] = {LIGHT_BOARD_WIDTH-1,LIGHT_BOARD_HEIGHT-1};
+    int other_axis;
+    
+    x = y = x_min_index = 0;
+    y_min_index = 1;
+    x_max_index = LIGHT_BOARD_WIDTH - 1;
+    y_max_index = LIGHT_BOARD_HEIGHT - 1;
+    x_dir = 1;
+    y_dir = 0;
+        
+    for (int i=0; i<painter->getIndexCount(); ++i)
+    {
+      
+       float indexPercent = 1.0 * i / painter->getIndexCount();
+       float h = ((indexPercent + time_percent) * 360.0);
+       if(h > 360) { h-= 360; }
+       CRGB color = CRGB(CHSV(h, 1.0, 1.0));
+       
+       painter->setPixelColor(x, y, color);
+/*
+       for (int axis=0;axis <= 1) {
+          other_axis = !axis;
+          
+       }
+*/
+        
+       if (x_dir > 0) {
+         if (x + x_dir > x_max_index) {
+            x_dir = 0;
+            y_dir = 1;
+            x_max_index -= 1;
+         }
+       }
+       if (x_dir < 0) {
+         if (x + x_dir < x_min_index) {
+            x_dir = 0;
+            y_dir = -1;
+            x_min_index += 1;
+         }
+       }         
+       if (y_dir > 0) {
+         if (y + y_dir > y_max_index) {
+            y_dir = 0;
+            x_dir = -1;
+            y_max_index -= 1;
+         }
+       }
+       if (y_dir < 0) {
+        if (y + y_dir < y_min_index) {
+            y_dir = 0;
+            x_dir = 1;
+            y_min_index += 1;
+        }
+       }
+       x += x_dir;
+       y += y_dir;
+       
+    }       
+  }
+};
+
+
 
 class Elena : public Program
 {
@@ -656,12 +747,14 @@ class Elena : public Program
 //}
 
   Program* programs[] = {
+    new RainbowSpiral(10000),
     new Elena(LIGHT_BOARD_HEIGHT*LIGHT_BOARD_WIDTH, 1),
-    new HSVTest(10000), 
-    new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 2000 ),
-    new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 1000 ),
-    new SolidColor(CRGB(255, 0, 255)),
-    new SolidColor(CRGB(0, 255, 255))
+    new HSVTest(10000),
+    new Elena(LIGHT_BOARD_HEIGHT*LIGHT_BOARD_WIDTH, 1)
+    //new SinWave( CRGB(255, 64, 255), CRGB(8, 32, 16), 2000 ),
+    //new SinWave( CRGB(255, 255, 32), CRGB(12, 0, 4), 1000 ),
+    //new SolidColor(CRGB(255, 0, 255)),
+    //new SolidColor(CRGB(0, 255, 255))
   };
   
   Transition* transitions[] = {
@@ -669,7 +762,7 @@ class Elena : public Program
 //    new WipeTransition(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, 0)
   };
   
-  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 6, transitions, 1);
+  ProgramManager pm = ProgramManager(LIGHT_BOARD_WIDTH, LIGHT_BOARD_HEIGHT, programs, 4, transitions, 1);
 
 void setup()
 {

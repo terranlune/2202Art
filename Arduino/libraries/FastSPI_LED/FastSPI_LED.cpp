@@ -48,6 +48,21 @@
 #define SLAVE_PIN 50
 #define CLOCK_PIN 52
 #define LATCH_PIN 53
+
+#elif defined(__AVR_ATmega32U4__)
+
+#define SPI_PORT PORTB
+#define SPI_DDR  DDRB
+#define SPI_PIN  PINB
+#define SPI_MOSI 2       // Arduino pin 10.
+#define SPI_MISO 3       // Arduino pin 11.
+#define SPI_SCK  1       // Arduino pin 9.
+#define SPI_SSN  0       // Arduino pin 8.
+#define DATA_PIN 16      // PB2, pin 10, Digital16
+#define SLAVE_PIN 14     // PB3, pin 11, Digital14
+#define CLOCK_PIN 15     // PB1, pin 9, Digital15
+#define LATCH_PIN 17     // PB0, pin 8, Digital17
+
 #endif
 
 #define BIT_HI(R, P) (R) |= _BV(P)
