@@ -17,8 +17,8 @@ width     = img.size[0]
 height    = img.size[1]
 print "%dx%d pixels" % img.size
 
-print "Resizing to %dx%d pixels" % (boardWidth, boardHeight)
-img = img.resize((boardWidth, boardHeight))
+# print "Resizing to %dx%d pixels" % (boardWidth, boardHeight)
+# img = img.resize((boardWidth, boardHeight))
 
 pixels    = img.load()
 
@@ -65,15 +65,21 @@ def setPixelColor(x, y, r, g, b):
 	i = getIndex(x, y)
 	setIndexColor(i, r, g, b)
 
-for x in range(boardWidth):
-	for y in range(boardHeight):
-		try:
-			setPixelColor(x, y, pixels[x, y][0], pixels[x, y][1], pixels[x, y][2] )
-		except IndexError:
-			setPixelColor(x, y, 0, 0, 0)
+img_offset = 0
+while(1):
+	for x in range(boardWidth):
+		for y in range(boardHeight):
+			ym = (y + img_offset) % height
+			try:
+				setPixelColor(x, y, pixels[x, y][0], pixels[x, y][1], pixels[x, y][2] )
+			except IndexError:
+				setPixelColor(x, y, 0, 0, 0)
 
-# Display the pixels
-spiBytes[numPixels] = 0 # Make sure latch is set
-spidev.write(spiBytes)
-spidev.flush()
-
+	# Display the pixels
+	spiBytes[numPixels] = 0 # Make sure latch is set
+	spidev.write(spiBytes)
+	spidev.flush()
+	img_offset++
+	if img_offset >= height:
+		img_offset = 0
+	sleep(.1)
