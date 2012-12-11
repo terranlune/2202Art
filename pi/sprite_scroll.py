@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO, Image, time
 
 # Configurable values
-filename  = "small_raspi.png"
+filename  = "all_sprites_flat.png"
 dev       = "/dev/spidev0.0"
 boardWidth=19
 boardHeight=13
