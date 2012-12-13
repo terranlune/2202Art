@@ -2,7 +2,6 @@
 
 from PyQt4 import QtGui, QtCore
 import sys
-import painter
 SIZE = 20
 
         
@@ -42,15 +41,19 @@ class Example(QtGui.QWidget):
         qp.end()
 
     def drawFrame(self, event, qp):
+        qp.setBrush(QtGui.QColor(0,0,0))
+        qp.drawRect(0, 0, 19*SIZE, 13*SIZE)
         for x in range(0, 19):
             for y in range(0, 13):
                 self.drawPixel(qp, x, y)
 
     def drawPixel(self, qp, x, y):
         colorT = self.pixelBuffer.getPixel(x,y)
-        qp.setBrush(QtGui.QColor(colorT[0], colorT[1], 
-                                             colorT[2]))
-        qp.drawRect(x*SIZE, y*SIZE, SIZE, SIZE)
+        color = QtGui.QColor(colorT[0], colorT[1], colorT[2])
+        qp.setBrush(color)
+        qp.setPen(color)
+        qp.setRenderHint(QtGui.QPainter.Antialiasing)
+        qp.drawRoundedRect(x*SIZE+2, y*SIZE+2, SIZE-4, SIZE-4, 10.0, 10.0)
 
 
     def timerEvent(self, event):

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import RPi.GPIO as GPIO, Image, time
+import RPi.GPIO as GPIO, time
+from PIL import Image
 
 # Configurable values
 filename  = "all_sprites_flat.png"
@@ -67,11 +68,12 @@ def setPixelColor(x, y, r, g, b):
 
 img_offset = 0
 while(1):
+	time.sleep(.5)
 	for x in range(boardWidth):
 		for y in range(boardHeight):
 			ym = (y + img_offset) % height
 			try:
-				setPixelColor(x, y, pixels[x, y][0], pixels[x, y][1], pixels[x, y][2] )
+				setPixelColor(x, y, pixels[x, ym][0], pixels[x, ym][1], pixels[x, ym][2] )
 			except IndexError:
 				setPixelColor(x, y, 0, 0, 0)
 
@@ -79,7 +81,6 @@ while(1):
 	spiBytes[numPixels] = 0 # Make sure latch is set
 	spidev.write(spiBytes)
 	spidev.flush()
-	img_offset++
+	img_offset += 1
 	if img_offset >= height:
 		img_offset = 0
-	sleep(.1)

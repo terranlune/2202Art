@@ -41,8 +41,9 @@ class UserPainter(Painter):
         now = time.time()
         dt = now - self.lastFrame
         t = now - self.start
+        self.lastFrame = now 
 
-        self.clear(0, 0, 0, opacity=.008*dt)
+        self.clear(0, 0, 0, opacity=2*dt)
 
         for p in self.parts:
             x, y = p.getPos(t)
