@@ -2,7 +2,6 @@
 
 from PyQt4 import QtGui, QtCore
 import sys
-import painter
 SIZE = 20
 
         
