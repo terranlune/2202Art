@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import RPi.GPIO as GPIO, Image, time
+import RPi.GPIO as GPIO, Image, time, sys
 
 # Configurable values
 filename  = "all_sprites_flat.png"
