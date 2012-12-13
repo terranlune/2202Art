@@ -74,3 +74,7 @@ def main():
         spiBytes[numPixels] = 0 # Make sure latch is set
         spidev.write(spiBytes)
         spidev.flush()
+
+
+if __name__ == '__main__':
+    main()
