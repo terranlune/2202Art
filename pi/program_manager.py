@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
-import RPi.GPIO as GPIO, Image, time, sys
+import RPi.GPIO as GPIO, sys
 
 # Configurable values
-filename  = "all_sprites_flat.png"
 dev       = "/dev/spidev0.0"
 boardWidth=19
 boardHeight=13
@@ -56,15 +55,22 @@ def setPixelColor(x, y, r, g, b):
 
 
 def main():
-    mod = __import__(sys.argv[1])
-    cls = getattr(mod, "UserPainter")
-    painter = cls()    
-    painter.setup()
+    progs = sys.argv[1:]
+    painters = []
+    pIndex = 0
+    for prog in progs:
+        mod = __import__(prog)
+        cls = getattr(mod, "UserPainter")
+        painters.append(cls())
+    for painter in painters:
+        painter.setup()
+
+    tick = 0
     while(1):
-        painter.draw()
-        for x in range(boardWidth):
+        painters[pIndex].draw()
+        for x in range(boardWidth, -1):
             for y in range(boardHeight):
-                color = painter.pixelBuffer.getPixel(x,y)
+                color = painter[pIndex].pixelBuffer.getPixel(x,y)
                 try:
                     setPixelColor(x, y, color[0], color[1], color[2] )
                 except IndexError:
@@ -74,6 +80,10 @@ def main():
         spiBytes[numPixels] = 0 # Make sure latch is set
         spidev.write(spiBytes)
         spidev.flush()
+        tick += 1
+        if tick > 10000:
+            tick = 0
+            pIndex = (pIndex + 1) % len(painters)
 
 
 if __name__ == '__main__':
