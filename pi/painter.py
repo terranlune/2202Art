@@ -22,6 +22,13 @@ class PixelBuffer(object):
         d = (self.data[i*3], self.data[i*3+1], self.data[i*3+2])
         return (d)
 
+    def clear(self, r, g, b, opacity=1):
+        mul = 1 - opacity
+        for p in range(self.width * self.height):
+            self.data[p * 3 + 0] = self.data[p * 3 + 0] * mul + r * opacity
+            self.data[p * 3 + 1] = self.data[p * 3 + 1] * mul + g * opacity
+            self.data[p * 3 + 2] = self.data[p * 3 + 2] * mul + b * opacity
+
 
 class Painter(object):
     width = 19
@@ -40,6 +47,9 @@ class Painter(object):
 
     def setPixel(self, x, y, r, g, b):
         self.pixelBuffer.setPixel(x,y,r,g,b)
+
+    def clear(self, r, g, b, opacity=1):
+        self.pixelBuffer.clear(r, g, b, opacity)
     
     def _getPixelBuffer(self):
         return self.pixelBuffer
