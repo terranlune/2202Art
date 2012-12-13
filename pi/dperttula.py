@@ -48,3 +48,4 @@ class UserPainter(Painter):
             x, y = p.getPos(t)
             if 0 <= x < self.width and 0 <= y < self.height:
                 self.setPixel(int(x), int(y), *p.color)
+
