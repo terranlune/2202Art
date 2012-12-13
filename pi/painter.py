@@ -1,4 +1,4 @@
-import sys
+import sys, math
 import array
 
 class PixelBuffer(object):
@@ -53,3 +53,46 @@ class Painter(object):
     
     def _getPixelBuffer(self):
         return self.pixelBuffer
+
+def HSVtoRGB(h, s, v):
+    if s == 0:
+        r = g = b = v
+        return
+
+    h /= 60
+    hsv_i = math.floor(h)
+    f = h - hsv_i    #factorial part of h
+
+    vs = v*s
+    vsf = vs * f
+
+    p = v - vs
+    q = v - vsf
+    t = v - vs + vsf
+
+    if hsv_i == 0:
+        r = v
+        g = t
+        b = p
+    if hsv_i == 1:
+        r = q
+        g = v
+        b = p
+    if hsv_i == 2:
+        r = p
+        g = v
+        b = t
+    if hsv_i == 3:
+        r = p
+        g = q
+        b = v
+    if hsv_i == 4:
+        r = t
+        g = p
+        b = v
+    if hsv_i >= 5:
+        r = v
+        g = p
+        b = q
+
+    return (int(r*255), int(g*255), int(b*255))
