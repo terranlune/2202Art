@@ -27,7 +27,6 @@ def get_quote(symbols):
 class UserPainter(Painter):
     img = None
     text = "Hello World!"
-    #font = ImageFont.truetype("Inconsolata.otf", 11)
     font = ImageFont.truetype("DejaVuSans.ttf", 11)
     #font = ImageFont.load_default()
 
@@ -49,12 +48,10 @@ class UserPainter(Painter):
             for x in range(self.width):
                 for y in range(self.height):
                     self.setPixel(x,y, 0,0,0)                    
-            print self.q
             text = ""
             for s in self.q:
                 text += "%s: %s  " % (s[0], s[1])
             self.text = text
-            print "TEXT=", self.text
             self.setup()
 
     def draw(self):
