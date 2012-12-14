@@ -5,6 +5,7 @@ import Image, ImageDraw, ImageFont
 
 import urllib
 import string
+import random
 
 def get_quote(symbols):
     data = []
@@ -32,27 +33,37 @@ class UserPainter(Painter):
 
     def setup(self):
         text = self.text
-        size = self.font.getsize(text)
-        size = (size[0], 13)
+        self.timer = 0
+        self.create_img()
+        self.pixels = self.img.load()
+
+    def create_img(self):
+        size = self.font.getsize(self.text)
+        size = (size[0], self.height)
         self.img = Image.new('RGBA', size, (0, 0, 0, 0))
-        draw = ImageDraw.Draw(self.img)
-        draw.text((0, 0), text, font=self.font)
-    
+        self.textdraw = ImageDraw.Draw(self.img)
         self.img_width = self.img.size[0]
         self.img_height = self.img.size[1]
         self.img_offset = 0
-        self.pixels = self.img.load()
-        self.timer = 0
-        
+
     def init_text_img(self):
             for x in range(self.width):
                 for y in range(self.height):
                     self.setPixel(x,y, 0,0,0)                    
             text = ""
+            offset = 0
             for s in self.q:
                 text += "%s: %s  " % (s[0], s[1])
             self.text = text
-            self.setup()
+            self.create_img()
+            for s in self.q:
+                text = "%s: %s  " % (s[0], s[1])
+                size = self.font.getsize(text)                
+                color = (random.randint(10,255), random.randint(10,255), random.randint(10,255))
+                self.textdraw.text((offset, 0), text, font=self.font, fill=color)
+                offset += size[0]
+            self.pixels = self.img.load()
+
 
     def draw(self):
         if self.timer % 500 == 0:
@@ -70,7 +81,7 @@ class UserPainter(Painter):
 
         self.timer += 1
                 
-        if (self.timer % 5) != 0:
+        if (self.timer % 3) != 0:
             return
         
         self.img_offset += 1
