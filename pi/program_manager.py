@@ -7,7 +7,7 @@ dev       = "/dev/spidev0.0"
 boardWidth=19
 boardHeight=13
 numPixels = 248
-MAX_TIME = 15
+MAX_TIME = 30
 
 # Open SPI device, load image in RGB format and get dimensions:
 spidev    = file(dev, "wb")
@@ -78,7 +78,7 @@ def main():
                     setPixelColor(x, y, 0, 0, 0)
 
         # Display the pixels
-        spiBytes[numPixels] = 0 # Make sure latch is set
+        #spiBytes[numPixels] = 0 # Make sure latch is set
         spidev.write(spiBytes)
         spidev.flush()
         if time.time() > start + MAX_TIME:

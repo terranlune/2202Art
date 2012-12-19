@@ -11,10 +11,10 @@ class Line(object):
     def getRGB(self):
         R = random
         rand = R()
-        r = b = 0
+        r = b = 35
         g = 200+rand*50
         if rand > .9:
-            r = b = 100
+            r = b = 75
             g = 255
         return (r, g, b)
     
@@ -22,8 +22,9 @@ class Line(object):
         if self.delay > 0:
             self.delay -= 1;
             return -1, -1
-        if self.delay == 0:
-            self.start = time.time()
+        if self.delay < 0:
+	    self.reset(False)
+	    self.delay = 0
 
         now = time.time()
         t = now - self.start
@@ -33,11 +34,13 @@ class Line(object):
                 
         return x, y
         
-    def reset(self):
+    def reset(self, delay=True):
         R = random
         self.start = time.time()
         self.color = self.getRGB()
         self.ymag = [(R() * self.height+1.5) for n in range(2)]
+	if delay:
+	    self.delay = R() * 20
 
 class UserPainter(Painter):
     img = None
@@ -50,7 +53,7 @@ class UserPainter(Painter):
                 Line(cx = i,
                      cy = 0,
                      color=(0, 0, 0),
-                     delay=R() * 250,
+                     delay=R() * 150,
                      height=self.height,
                      ymag=[(R() * self.height+1.5) for n in range(2)])
                 )
@@ -61,11 +64,12 @@ class UserPainter(Painter):
         dt = now - self.lastFrame
         self.lastFrame = now 
         
-        self.clear(0, 0, 0, opacity=4*dt)
+        self.clear(0, 0, 0, opacity=4.5*dt)
 
         for p in self.lines:
             x, y = p.getPos()
             if 0 <= x < self.width and 0 <= y < self.height:
                 self.setPixel(int(x), int(y), *p.color)
             else:
-                p.reset()
+		if y >= self.height:
+                    p.reset()
