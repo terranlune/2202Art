@@ -30,3 +30,4 @@ class UserPainter(Painter):
                               self.pixels[x, ym][2])
         self.frame += 1
 
+
