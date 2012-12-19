@@ -89,4 +89,3 @@ class UserPainter(Painter):
         if self.img_offset >= self.img_width:
             self.img_offset = 0
             self.init_text_img()
-

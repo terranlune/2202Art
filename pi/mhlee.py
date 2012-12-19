@@ -14,7 +14,7 @@ class UserPainter(Painter):
         self.pixels = self.img.load()
         self.timer = 0
 
-    def draw(self):
+    def draw(self):        
         for x in range(self.width):
             for y in range(self.height):
                 ym = (y + self.img_offset) % self.img_height
