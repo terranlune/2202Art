@@ -11,8 +11,8 @@ class Line(object):
     def getRGB(self):
         R = random
         rand = R()
-        r = b = 35
-        g = 170+rand*85
+        r = b = 25
+        g = 170+rand*50
         if rand > .9:
             r = b = 75
             g = 255
