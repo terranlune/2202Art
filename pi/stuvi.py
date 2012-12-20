@@ -83,7 +83,7 @@ class UserPainter(Painter):
                 
         if (self.timer % 3) != 0:
             return
-        
+
         self.img_offset += 1
 
         if self.img_offset >= self.img_width:
